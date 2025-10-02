@@ -16,15 +16,30 @@ const Index = () => {
   const [speed, setSpeed] = useState(0);
   const [fuelLevel, setFuelLevel] = useState(100);
   const [efficiency, setEfficiency] = useState(85);
+  const [obstacleDetectionEnabled, setObstacleDetectionEnabled] = useState(true);
+  const [obstacleDetected, setObstacleDetected] = useState(false);
 
-  // Simulate movement
+  // Simulate movement with obstacle detection
   useEffect(() => {
     if (!isMoving) {
       setSpeed(0);
+      setObstacleDetected(false);
       return;
     }
 
     const interval = setInterval(() => {
+      // Random obstacle detection (5% chance per update)
+      if (obstacleDetectionEnabled && Math.random() < 0.05) {
+        setObstacleDetected(true);
+        setIsMoving(false);
+        setSpeed(0);
+        setCurrentAction("Obstacle Detected!");
+        toast.error("⚠️ Obstacle detected! Tractor stopped for safety.", {
+          duration: 5000,
+        });
+        return;
+      }
+
       setPosition((prev) => {
         // Simple movement simulation - move north
         const distance = 0.00001; // Small increment
@@ -43,7 +58,7 @@ const Index = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isMoving]);
+  }, [isMoving, obstacleDetectionEnabled]);
 
   const handleModelSelect = (model: TractorModel) => {
     setSelectedModel(model);
@@ -82,12 +97,26 @@ const Index = () => {
           
           <ActionPanel
             currentAction={currentAction}
-            onActionChange={setCurrentAction}
+            onActionChange={(action) => {
+              setCurrentAction(action);
+              setObstacleDetected(false);
+            }}
             isMoving={isMoving}
             onMovementToggle={() => {
               setIsMoving(!isMoving);
+              setObstacleDetected(false);
               toast.info(isMoving ? "Movement stopped" : "Movement started");
             }}
+            obstacleDetectionEnabled={obstacleDetectionEnabled}
+            onObstacleDetectionToggle={() => {
+              setObstacleDetectionEnabled(!obstacleDetectionEnabled);
+              toast.info(
+                !obstacleDetectionEnabled
+                  ? "Obstacle detection enabled"
+                  : "Obstacle detection disabled"
+              );
+            }}
+            obstacleDetected={obstacleDetected}
           />
         </div>
 

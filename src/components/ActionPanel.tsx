@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sprout, Droplets, Eye, Play, Square } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Sprout, Droplets, Eye, Play, Square, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ActionPanelProps {
@@ -9,6 +11,9 @@ interface ActionPanelProps {
   onActionChange: (action: string) => void;
   isMoving: boolean;
   onMovementToggle: () => void;
+  obstacleDetectionEnabled: boolean;
+  onObstacleDetectionToggle: () => void;
+  obstacleDetected: boolean;
 }
 
 export const ActionPanel = ({
@@ -16,6 +21,9 @@ export const ActionPanel = ({
   onActionChange,
   isMoving,
   onMovementToggle,
+  obstacleDetectionEnabled,
+  onObstacleDetectionToggle,
+  obstacleDetected,
 }: ActionPanelProps) => {
   const actions = [
     { id: "harvest", label: "Harvest", icon: Sprout, color: "success" },
@@ -66,6 +74,27 @@ export const ActionPanel = ({
             )}
           </Button>
         </div>
+
+        {/* Obstacle Detection Toggle */}
+        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+          <Label htmlFor="obstacle-detection" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Obstacle Detection
+          </Label>
+          <Switch
+            id="obstacle-detection"
+            checked={obstacleDetectionEnabled}
+            onCheckedChange={onObstacleDetectionToggle}
+          />
+        </div>
+
+        {/* Obstacle Warning */}
+        {obstacleDetected && (
+          <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive rounded-lg animate-pulse">
+            <AlertCircle className="w-5 h-5 text-destructive" />
+            <p className="text-sm font-semibold text-destructive">Obstacle Detected!</p>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="space-y-2">

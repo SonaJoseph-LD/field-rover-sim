@@ -37,23 +37,23 @@ export const SimulationMap = ({
       maxZoom: 19,
     }).addTo(map);
 
-    // Create custom tractor icon
+    // Create custom tractor icon with high visibility
     const tractorIcon = L.divIcon({
       className: "tractor-marker",
       html: `
         <div class="relative">
-          <div class="w-8 h-12 bg-primary rounded-lg shadow-glow flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2">
-            <svg class="w-6 h-6 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L4 6v4l8 4 8-4V6l-8-4zm0 2.5l5.5 2.75L12 10 6.5 7.25 12 4.5zM4 11.5v4l8 4 8-4v-4l-8 4-8-4z"/>
+          <div class="w-16 h-16 bg-primary rounded-full shadow-glow flex items-center justify-center border-4 border-primary-foreground animate-pulse">
+            <svg class="w-10 h-10 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 15h-2v-2h-2v2h-2v2h2v2h2v-2h2m-9-2h4v-2H5v-4h5a2 2 0 0 1 2-2 2 2 0 0 1 2 2h1l3 4m-6 3a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2m10 0a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2z"/>
             </svg>
           </div>
-          <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-2 py-1 rounded text-xs whitespace-nowrap shadow-md">
+          <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap shadow-lg border-2 border-primary">
             ${currentAction}
           </div>
         </div>
       `,
-      iconSize: [32, 48],
-      iconAnchor: [16, 24],
+      iconSize: [64, 64],
+      iconAnchor: [32, 32],
     });
 
     const marker = L.marker([position.lat, position.lng], {
@@ -102,20 +102,20 @@ export const SimulationMap = ({
         className: "tractor-marker",
         html: `
           <div class="relative">
-            <div class="w-8 h-12 bg-primary rounded-lg shadow-glow flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 ${
+            <div class="w-16 h-16 bg-primary rounded-full shadow-glow flex items-center justify-center border-4 border-primary-foreground ${
               isMoving ? "animate-pulse" : ""
             }">
-              <svg class="w-6 h-6 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L4 6v4l8 4 8-4V6l-8-4zm0 2.5l5.5 2.75L12 10 6.5 7.25 12 4.5zM4 11.5v4l8 4 8-4v-4l-8 4-8-4z"/>
+              <svg class="w-10 h-10 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 15h-2v-2h-2v2h-2v2h2v2h2v-2h2m-9-2h4v-2H5v-4h5a2 2 0 0 1 2-2 2 2 0 0 1 2 2h1l3 4m-6 3a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2m10 0a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2z"/>
               </svg>
             </div>
-            <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-2 py-1 rounded text-xs whitespace-nowrap shadow-md border border-border">
+            <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap shadow-lg border-2 border-primary">
               ${currentAction}
             </div>
           </div>
         `,
-        iconSize: [32, 48],
-        iconAnchor: [16, 24],
+        iconSize: [64, 64],
+        iconAnchor: [32, 32],
       });
       tractorMarkerRef.current.setIcon(tractorIcon);
     }
