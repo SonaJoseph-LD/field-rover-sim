@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { SimulationMap } from "@/components/SimulationMap";
 import { TractorConfig } from "@/components/TractorConfig";
 import { ActionPanel } from "@/components/ActionPanel";

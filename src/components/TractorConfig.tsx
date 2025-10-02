@@ -1,3 +1,4 @@
+import React from "react";
 import { TractorModel, TRACTOR_MODELS } from "@/types/tractor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
