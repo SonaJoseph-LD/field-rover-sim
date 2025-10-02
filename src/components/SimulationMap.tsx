@@ -33,8 +33,11 @@ export const SimulationMap = ({
 
     // Use satellite imagery for field visibility
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
+      updateWhenIdle: true,
+      updateWhenZooming: false,
     }).addTo(map);
 
     // Create custom tractor icon with high visibility
@@ -73,12 +76,17 @@ export const SimulationMap = ({
 
     tractorMarkerRef.current = marker;
     mapRef.current = map;
-    setMapReady(true);
-
-    toast.success("Map initialized");
+    map.whenReady(() => {
+      setMapReady(true);
+      map.invalidateSize();
+      toast.success("Map initialized");
+    });
 
     return () => {
-      map.remove();
+      try { map.remove(); } catch {}
+      tractorMarkerRef.current = null;
+      mapRef.current = null;
+      setMapReady(false);
     };
   }, []);
 
@@ -86,12 +94,6 @@ export const SimulationMap = ({
   useEffect(() => {
     if (tractorMarkerRef.current && mapReady) {
       tractorMarkerRef.current.setLatLng([position.lat, position.lng]);
-      
-      // Update icon rotation based on heading
-      const icon = tractorMarkerRef.current.getElement();
-      if (icon) {
-        icon.style.transform = `rotate(${position.heading}deg)`;
-      }
     }
   }, [position, mapReady]);
 
@@ -123,9 +125,13 @@ export const SimulationMap = ({
 
   // Center map on tractor
   const centerOnTractor = () => {
-    if (mapRef.current) {
-      mapRef.current.setView([position.lat, position.lng], 15);
+    const map = mapRef.current;
+    if (map && mapReady) {
+      map.invalidateSize();
+      map.setView([position.lat, position.lng], 15, { animate: true });
       toast.info("Centered on tractor");
+    } else {
+      toast.info("Map is still loading. Please try again in a moment.");
     }
   };
 
