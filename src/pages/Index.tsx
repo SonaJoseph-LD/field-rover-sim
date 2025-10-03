@@ -18,12 +18,61 @@ const Index = () => {
   const [efficiency, setEfficiency] = useState(85);
   const [obstacleDetectionEnabled, setObstacleDetectionEnabled] = useState(true);
   const [obstacleDetected, setObstacleDetected] = useState(false);
+  const [controlMode, setControlMode] = useState<"manual" | "automatic">("manual");
+  const [path, setPath] = useState<[number, number][]>([[position.lat, position.lng]]);
+  const [coveredArea, setCoveredArea] = useState<[number, number][]>([]);
 
-  // Simulate movement with obstacle detection
+  // Keyboard controls for manual mode
   useEffect(() => {
-    if (!isMoving) {
-      setSpeed(0);
-      setObstacleDetected(false);
+    if (controlMode !== "manual") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const moveDistance = 0.00003; // Distance per key press
+      const turnAngle = 10; // Degrees per turn
+
+      setPosition((prev) => {
+        let newLat = prev.lat;
+        let newLng = prev.lng;
+        let newHeading = prev.heading;
+
+        switch (e.key) {
+          case "ArrowUp":
+            e.preventDefault();
+            newLat += moveDistance * Math.cos((prev.heading * Math.PI) / 180);
+            newLng += moveDistance * Math.sin((prev.heading * Math.PI) / 180);
+            break;
+          case "ArrowDown":
+            e.preventDefault();
+            newLat -= moveDistance * Math.cos((prev.heading * Math.PI) / 180);
+            newLng -= moveDistance * Math.sin((prev.heading * Math.PI) / 180);
+            break;
+          case "ArrowLeft":
+            e.preventDefault();
+            newHeading = (prev.heading - turnAngle + 360) % 360;
+            break;
+          case "ArrowRight":
+            e.preventDefault();
+            newHeading = (prev.heading + turnAngle) % 360;
+            break;
+          default:
+            return prev;
+        }
+
+        return { lat: newLat, lng: newLng, heading: newHeading };
+      });
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [controlMode]);
+
+  // Automatic movement with obstacle detection
+  useEffect(() => {
+    if (!isMoving || controlMode !== "automatic") {
+      if (!isMoving) {
+        setSpeed(0);
+        setObstacleDetected(false);
+      }
       return;
     }
 
@@ -41,9 +90,9 @@ const Index = () => {
       }
 
       setPosition((prev) => {
-        // Simple movement simulation - move north
+        // Simple movement simulation - move forward
         const distance = 0.00001; // Small increment
-        const newHeading = (prev.heading + (Math.random() - 0.5) * 5) % 360;
+        const newHeading = (prev.heading + (Math.random() - 0.5) * 3) % 360;
         
         return {
           lat: prev.lat + distance * Math.cos((newHeading * Math.PI) / 180),
@@ -58,11 +107,36 @@ const Index = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isMoving, obstacleDetectionEnabled]);
+  }, [isMoving, obstacleDetectionEnabled, controlMode]);
+
+  // Track path and covered area
+  useEffect(() => {
+    setPath((prev) => [...prev, [position.lat, position.lng]]);
+    if (isMoving || controlMode === "manual") {
+      setCoveredArea((prev) => [...prev, [position.lat, position.lng]]);
+    }
+  }, [position, isMoving, controlMode]);
 
   const handleModelSelect = (model: TractorModel) => {
     setSelectedModel(model);
     setCustomTurnRadius(model.turnRadius);
+  };
+
+  const handleTurn = (direction: "left" | "right") => {
+    const turnAngle = customTurnRadius * 10; // Use turn radius for turn angle
+    setPosition((prev) => ({
+      ...prev,
+      heading: direction === "left" 
+        ? (prev.heading - turnAngle + 360) % 360
+        : (prev.heading + turnAngle) % 360,
+    }));
+    toast.success(`Turned ${direction}`);
+  };
+
+  const clearPath = () => {
+    setPath([[position.lat, position.lng]]);
+    setCoveredArea([]);
+    toast.info("Path cleared");
   };
 
   return (
@@ -117,6 +191,14 @@ const Index = () => {
               );
             }}
             obstacleDetected={obstacleDetected}
+            controlMode={controlMode}
+            onControlModeChange={(mode) => {
+              setControlMode(mode);
+              setIsMoving(false);
+              toast.info(`Switched to ${mode} control`);
+            }}
+            onTurn={handleTurn}
+            onClearPath={clearPath}
           />
         </div>
 
@@ -127,6 +209,8 @@ const Index = () => {
             onPositionChange={setPosition}
             isMoving={isMoving}
             currentAction={currentAction}
+            path={path}
+            coveredArea={coveredArea}
           />
         </div>
 

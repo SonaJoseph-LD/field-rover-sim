@@ -15,6 +15,10 @@ interface ActionPanelProps {
   obstacleDetectionEnabled: boolean;
   onObstacleDetectionToggle: () => void;
   obstacleDetected: boolean;
+  controlMode: "manual" | "automatic";
+  onControlModeChange: (mode: "manual" | "automatic") => void;
+  onTurn: (direction: "left" | "right") => void;
+  onClearPath: () => void;
 }
 
 export const ActionPanel = ({
@@ -25,6 +29,10 @@ export const ActionPanel = ({
   obstacleDetectionEnabled,
   onObstacleDetectionToggle,
   obstacleDetected,
+  controlMode,
+  onControlModeChange,
+  onTurn,
+  onClearPath,
 }: ActionPanelProps) => {
   const actions = [
     { id: "harvest", label: "Harvest", icon: Sprout, color: "success" },
@@ -54,27 +62,77 @@ export const ActionPanel = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Movement Control */}
+        {/* Control Mode */}
         <div className="space-y-2">
-          <Button
-            onClick={onMovementToggle}
-            className="w-full"
-            variant={isMoving ? "destructive" : "default"}
-            size="lg"
-          >
-            {isMoving ? (
-              <>
-                <Square className="mr-2 h-4 w-4" />
-                Stop Movement
-              </>
-            ) : (
-              <>
-                <Play className="mr-2 h-4 w-4" />
-                Start Movement
-              </>
-            )}
-          </Button>
+          <label className="text-sm font-medium">Control Mode</label>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => onControlModeChange("manual")}
+              className="flex-1"
+              variant={controlMode === "manual" ? "default" : "outline"}
+            >
+              Manual
+            </Button>
+            <Button
+              onClick={() => onControlModeChange("automatic")}
+              className="flex-1"
+              variant={controlMode === "automatic" ? "default" : "outline"}
+            >
+              Automatic
+            </Button>
+          </div>
         </div>
+
+        {/* Manual Controls */}
+        {controlMode === "manual" && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Manual Controls</label>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-start-2">
+                <Button onClick={() => {}} className="w-full" variant="outline" size="sm" disabled>
+                  ↑
+                </Button>
+              </div>
+              <div className="col-start-1">
+                <Button onClick={() => onTurn("left")} className="w-full" variant="outline" size="sm">
+                  ←
+                </Button>
+              </div>
+              <div className="col-start-3">
+                <Button onClick={() => onTurn("right")} className="w-full" variant="outline" size="sm">
+                  →
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Use arrow keys: ↑ forward, ↓ backward, ← left, → right
+            </p>
+          </div>
+        )}
+
+        {/* Movement Control (Automatic Mode) */}
+        {controlMode === "automatic" && (
+          <div className="space-y-2">
+            <Button
+              onClick={onMovementToggle}
+              className="w-full"
+              variant={isMoving ? "destructive" : "default"}
+              size="lg"
+            >
+              {isMoving ? (
+                <>
+                  <Square className="mr-2 h-4 w-4" />
+                  Stop Movement
+                </>
+              ) : (
+                <>
+                  <Play className="mr-2 h-4 w-4" />
+                  Start Movement
+                </>
+              )}
+            </Button>
+          </div>
+        )}
 
         {/* Obstacle Detection Toggle */}
         <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -113,6 +171,13 @@ export const ActionPanel = ({
               </Button>
             ))}
           </div>
+        </div>
+
+        {/* Path Controls */}
+        <div className="space-y-2">
+          <Button onClick={onClearPath} className="w-full" variant="outline" size="sm">
+            Clear Path
+          </Button>
         </div>
 
         {/* Current Action Info */}

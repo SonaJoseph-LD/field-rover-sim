@@ -9,6 +9,8 @@ interface SimulationMapProps {
   onPositionChange: (position: TractorPosition) => void;
   isMoving: boolean;
   currentAction: string;
+  path: [number, number][];
+  coveredArea: [number, number][];
 }
 
 export const SimulationMap = ({
@@ -16,9 +18,13 @@ export const SimulationMap = ({
   onPositionChange,
   isMoving,
   currentAction,
+  path,
+  coveredArea,
 }: SimulationMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const tractorMarkerRef = useRef<L.Marker | null>(null);
+  const pathLineRef = useRef<L.Polyline | null>(null);
+  const coveredAreaRef = useRef<L.Polyline | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapReady, setMapReady] = useState(false);
 
@@ -82,9 +88,28 @@ export const SimulationMap = ({
       toast.success("Map initialized");
     });
 
+    // Add path visualization
+    const pathLine = L.polyline([], {
+      color: "#10b981",
+      weight: 2,
+      opacity: 0.7,
+      dashArray: "5, 10",
+    }).addTo(map);
+    pathLineRef.current = pathLine;
+
+    // Add covered area visualization
+    const coveredAreaLine = L.polyline([], {
+      color: "#3b82f6",
+      weight: 4,
+      opacity: 0.5,
+    }).addTo(map);
+    coveredAreaRef.current = coveredAreaLine;
+
     return () => {
       try { map.remove(); } catch {}
       tractorMarkerRef.current = null;
+      pathLineRef.current = null;
+      coveredAreaRef.current = null;
       mapRef.current = null;
       setMapReady(false);
     };
@@ -96,6 +121,20 @@ export const SimulationMap = ({
       tractorMarkerRef.current.setLatLng([position.lat, position.lng]);
     }
   }, [position, mapReady]);
+
+  // Update path visualization
+  useEffect(() => {
+    if (pathLineRef.current && mapReady && path.length > 0) {
+      pathLineRef.current.setLatLngs(path);
+    }
+  }, [path, mapReady]);
+
+  // Update covered area visualization
+  useEffect(() => {
+    if (coveredAreaRef.current && mapReady && coveredArea.length > 0) {
+      coveredAreaRef.current.setLatLngs(coveredArea);
+    }
+  }, [coveredArea, mapReady]);
 
   // Update marker when action changes
   useEffect(() => {
