@@ -13,6 +13,58 @@ interface SimulationMapProps {
   coveredArea: [number, number][];
 }
 
+const create3DTractorIcon = (heading: number, currentAction: string, isMoving: boolean) => {
+  return L.divIcon({
+    className: "tractor-marker-3d",
+    html: `
+      <div class="relative" style="transform: rotate(${heading}deg); transition: transform 0.3s ease-out;">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <!-- Tractor body with 3D effect -->
+          <div class="absolute inset-0 bg-gradient-to-br from-green-600 via-green-700 to-green-900 rounded-lg shadow-2xl transform-gpu" style="transform: perspective(200px) rotateX(25deg);">
+            <!-- Engine compartment -->
+            <div class="absolute top-1 left-1/2 -translate-x-1/2 w-8 h-6 bg-gradient-to-b from-gray-800 to-gray-900 rounded-t-lg border border-gray-700"></div>
+            <!-- Cabin with glass effect -->
+            <div class="absolute top-7 left-1/2 -translate-x-1/2 w-10 h-8 bg-gradient-to-br from-blue-900/40 to-blue-950/60 rounded-lg border-2 border-gray-700 backdrop-blur-sm">
+              <div class="absolute inset-1 bg-gradient-to-br from-cyan-400/20 to-transparent rounded"></div>
+            </div>
+          </div>
+          
+          <!-- Front wheels -->
+          <div class="absolute top-2 left-1 w-3 h-3 bg-gradient-to-br from-gray-800 to-black rounded-full border-2 border-gray-900 shadow-lg ${isMoving ? 'animate-spin' : ''}"></div>
+          <div class="absolute top-2 right-1 w-3 h-3 bg-gradient-to-br from-gray-800 to-black rounded-full border-2 border-gray-900 shadow-lg ${isMoving ? 'animate-spin' : ''}"></div>
+          
+          <!-- Rear wheels (larger) -->
+          <div class="absolute bottom-1 -left-1 w-5 h-5 bg-gradient-to-br from-gray-700 to-black rounded-full border-3 border-gray-900 shadow-2xl ${isMoving ? 'animate-spin' : ''}"></div>
+          <div class="absolute bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-gray-700 to-black rounded-full border-3 border-gray-900 shadow-2xl ${isMoving ? 'animate-spin' : ''}"></div>
+          
+          <!-- Exhaust pipe -->
+          <div class="absolute top-0 right-2 w-1.5 h-4 bg-gradient-to-b from-gray-600 to-gray-800 rounded-t-full"></div>
+          ${isMoving ? '<div class="absolute -top-2 right-2 w-3 h-3 bg-gray-400/50 rounded-full animate-pulse"></div>' : ''}
+          
+          <!-- Turn indicators -->
+          ${isMoving ? `
+            <div class="absolute -left-2 top-1/2 w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-glow"></div>
+            <div class="absolute -right-2 top-1/2 w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-glow"></div>
+          ` : ''}
+          
+          <!-- Movement trail effect -->
+          ${isMoving ? '<div class="absolute inset-0 rounded-lg bg-primary/20 animate-pulse"></div>' : ''}
+        </div>
+        
+        <!-- Action label -->
+        <div class="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-gradient-to-br from-card to-card/90 text-card-foreground px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap shadow-2xl border-2 border-primary backdrop-blur-sm">
+          <div class="flex items-center gap-2">
+            ${isMoving ? '<div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>' : '<div class="w-2 h-2 bg-gray-400 rounded-full"></div>'}
+            <span>${currentAction}</span>
+          </div>
+        </div>
+      </div>
+    `,
+    iconSize: [80, 80],
+    iconAnchor: [40, 40],
+  });
+};
+
 export const SimulationMap = ({
   position,
   onPositionChange,
@@ -46,24 +98,7 @@ export const SimulationMap = ({
       updateWhenZooming: false,
     }).addTo(map);
 
-    // Create custom tractor icon with high visibility
-    const tractorIcon = L.divIcon({
-      className: "tractor-marker",
-      html: `
-        <div class="relative">
-          <div class="w-16 h-16 bg-primary rounded-full shadow-glow flex items-center justify-center border-4 border-primary-foreground animate-pulse">
-            <svg class="w-10 h-10 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 15h-2v-2h-2v2h-2v2h2v2h2v-2h2m-9-2h4v-2H5v-4h5a2 2 0 0 1 2-2 2 2 0 0 1 2 2h1l3 4m-6 3a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2m10 0a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2z"/>
-            </svg>
-          </div>
-          <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap shadow-lg border-2 border-primary">
-            ${currentAction}
-          </div>
-        </div>
-      `,
-      iconSize: [64, 64],
-      iconAnchor: [32, 32],
-    });
+    const tractorIcon = create3DTractorIcon(position.heading, currentAction, isMoving);
 
     const marker = L.marker([position.lat, position.lng], {
       icon: tractorIcon,
@@ -136,31 +171,13 @@ export const SimulationMap = ({
     }
   }, [coveredArea, mapReady]);
 
-  // Update marker when action changes
+  // Update marker when action or heading changes
   useEffect(() => {
     if (tractorMarkerRef.current && mapReady) {
-      const tractorIcon = L.divIcon({
-        className: "tractor-marker",
-        html: `
-          <div class="relative">
-            <div class="w-16 h-16 bg-primary rounded-full shadow-glow flex items-center justify-center border-4 border-primary-foreground ${
-              isMoving ? "animate-pulse" : ""
-            }">
-              <svg class="w-10 h-10 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 15h-2v-2h-2v2h-2v2h2v2h2v-2h2m-9-2h4v-2H5v-4h5a2 2 0 0 1 2-2 2 2 0 0 1 2 2h1l3 4m-6 3a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2m10 0a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2z"/>
-              </svg>
-            </div>
-            <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap shadow-lg border-2 border-primary">
-              ${currentAction}
-            </div>
-          </div>
-        `,
-        iconSize: [64, 64],
-        iconAnchor: [32, 32],
-      });
+      const tractorIcon = create3DTractorIcon(position.heading, currentAction, isMoving);
       tractorMarkerRef.current.setIcon(tractorIcon);
     }
-  }, [currentAction, isMoving, mapReady]);
+  }, [currentAction, isMoving, position.heading, mapReady]);
 
   // Center map on tractor
   const centerOnTractor = () => {

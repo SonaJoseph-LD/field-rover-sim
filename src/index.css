@@ -95,4 +95,13 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  .tractor-marker-3d {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .tractor-marker-3d * {
+    pointer-events: none;
+  }
 }
