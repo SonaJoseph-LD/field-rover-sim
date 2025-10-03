@@ -11,6 +11,12 @@ interface SimulationMapProps {
   currentAction: string;
   path: [number, number][];
   coveredArea: [number, number][];
+  activityLog: {
+    activity: string;
+    coordinates: [number, number];
+    timestamp: string;
+    duration: number;
+  }[];
 }
 
 const create3DTractorIcon = (heading: number, currentAction: string, isMoving: boolean) => {
@@ -72,11 +78,14 @@ export const SimulationMap = ({
   currentAction,
   path,
   coveredArea,
+  activityLog,
 }: SimulationMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const tractorMarkerRef = useRef<L.Marker | null>(null);
   const pathLineRef = useRef<L.Polyline | null>(null);
   const coveredAreaRef = useRef<L.Polyline | null>(null);
+  const activityMarkersRef = useRef<L.CircleMarker[]>([]);
+  const activityAnimationRef = useRef<L.CircleMarker[]>([]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapReady, setMapReady] = useState(false);
 
@@ -170,6 +179,86 @@ export const SimulationMap = ({
       coveredAreaRef.current.setLatLngs(coveredArea);
     }
   }, [coveredArea, mapReady]);
+
+  // Update activity markers
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    // Clear old markers
+    activityMarkersRef.current.forEach(marker => marker.remove());
+    activityMarkersRef.current = [];
+
+    // Add new markers
+    activityLog.forEach(log => {
+      const isHarvest = log.activity === "harvest";
+      const marker = L.circleMarker(log.coordinates, {
+        radius: isHarvest ? 8 : 6,
+        color: isHarvest ? "#10b981" : "#f59e0b",
+        fillColor: isHarvest ? "#10b981" : "#f59e0b",
+        fillOpacity: 0.6,
+        weight: 2,
+      }).addTo(map);
+      activityMarkersRef.current.push(marker);
+    });
+  }, [activityLog, mapReady]);
+
+  // Activity animation effects
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !isMoving) {
+      // Clear animations when not moving
+      activityAnimationRef.current.forEach(marker => marker.remove());
+      activityAnimationRef.current = [];
+      return;
+    }
+
+    const animationInterval = setInterval(() => {
+      // Clear old animation markers
+      activityAnimationRef.current.forEach(marker => marker.remove());
+      activityAnimationRef.current = [];
+
+      // Add spray effect
+      if (currentAction === "spray") {
+        for (let i = 0; i < 8; i++) {
+          const marker = L.circleMarker([
+            position.lat + (Math.random() - 0.5) * 0.0001,
+            position.lng + (Math.random() - 0.5) * 0.0001,
+          ], {
+            radius: 3,
+            color: "#3b82f6",
+            fillColor: "#93c5fd",
+            fillOpacity: 0.7,
+            weight: 1,
+          }).addTo(map);
+          activityAnimationRef.current.push(marker);
+        }
+      }
+
+      // Add harvest effect
+      if (currentAction === "harvest") {
+        for (let i = 0; i < 5; i++) {
+          const marker = L.circleMarker([
+            position.lat - (i * 0.00002),
+            position.lng + (Math.random() - 0.5) * 0.00003,
+          ], {
+            radius: 2,
+            color: "#fbbf24",
+            fillColor: "#fde68a",
+            fillOpacity: 0.8,
+            weight: 1,
+          }).addTo(map);
+          activityAnimationRef.current.push(marker);
+        }
+      }
+    }, 500);
+
+    return () => {
+      clearInterval(animationInterval);
+      activityAnimationRef.current.forEach(marker => marker.remove());
+      activityAnimationRef.current = [];
+    };
+  }, [currentAction, isMoving, position, mapReady]);
 
   // Update marker when action or heading changes
   useEffect(() => {

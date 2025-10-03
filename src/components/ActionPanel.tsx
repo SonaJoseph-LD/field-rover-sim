@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Sprout, Droplets, Eye, Play, Square, AlertCircle } from "lucide-react";
+import { Sprout, Droplets, Eye, Play, Square, AlertCircle, Download, Timer } from "lucide-react";
 import { toast } from "sonner";
 
 interface ActionPanelProps {
@@ -19,6 +19,10 @@ interface ActionPanelProps {
   onControlModeChange: (mode: "manual" | "automatic") => void;
   onTurn: (direction: "left" | "right") => void;
   onClearPath: () => void;
+  currentActivityDuration: number;
+  totalHarvestTime: number;
+  totalSprayTime: number;
+  onExportData: () => void;
 }
 
 export const ActionPanel = ({
@@ -33,7 +37,16 @@ export const ActionPanel = ({
   onControlModeChange,
   onTurn,
   onClearPath,
+  currentActivityDuration,
+  totalHarvestTime,
+  totalSprayTime,
+  onExportData,
 }: ActionPanelProps) => {
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
   const actions = [
     { id: "harvest", label: "Harvest", icon: Sprout, color: "success" },
     { id: "spray", label: "Spray", icon: Droplets, color: "warning" },
@@ -173,10 +186,48 @@ export const ActionPanel = ({
           </div>
         </div>
 
+        {/* Activity Tracking */}
+        {(currentAction === "harvest" || currentAction === "spray") && (
+          <div className="p-3 bg-primary/10 border border-primary rounded-lg space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Timer className="w-4 h-4 text-primary animate-pulse" />
+              Current Activity Duration
+            </div>
+            <div className="text-2xl font-bold text-primary">
+              {formatTime(currentActivityDuration)}
+            </div>
+          </div>
+        )}
+
+        {/* Activity Summary */}
+        <div className="p-3 bg-muted rounded-lg space-y-2">
+          <div className="text-xs font-medium text-muted-foreground mb-2">Total Time Spent</div>
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Sprout className="w-3 h-3 text-success" />
+                <span className="text-xs">Harvest</span>
+              </div>
+              <span className="text-xs font-mono">{formatTime(totalHarvestTime)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Droplets className="w-3 h-3 text-warning" />
+                <span className="text-xs">Spray</span>
+              </div>
+              <span className="text-xs font-mono">{formatTime(totalSprayTime)}</span>
+            </div>
+          </div>
+        </div>
+
         {/* Path Controls */}
         <div className="space-y-2">
           <Button onClick={onClearPath} className="w-full" variant="outline" size="sm">
             Clear Path
+          </Button>
+          <Button onClick={onExportData} className="w-full" variant="default" size="sm">
+            <Download className="w-4 h-4 mr-2" />
+            Export Activity Data
           </Button>
         </div>
 

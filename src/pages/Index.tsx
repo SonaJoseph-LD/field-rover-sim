@@ -21,6 +21,18 @@ const Index = () => {
   const [controlMode, setControlMode] = useState<"manual" | "automatic">("manual");
   const [path, setPath] = useState<[number, number][]>([[position.lat, position.lng]]);
   const [coveredArea, setCoveredArea] = useState<[number, number][]>([]);
+  
+  // Activity tracking
+  const [activityLog, setActivityLog] = useState<{
+    activity: string;
+    coordinates: [number, number];
+    timestamp: string;
+    duration: number;
+  }[]>([]);
+  const [activityStartTime, setActivityStartTime] = useState<number | null>(null);
+  const [currentActivityDuration, setCurrentActivityDuration] = useState(0);
+  const [totalHarvestTime, setTotalHarvestTime] = useState(0);
+  const [totalSprayTime, setTotalSprayTime] = useState(0);
 
   // Keyboard controls for manual mode
   useEffect(() => {
@@ -117,6 +129,47 @@ const Index = () => {
     }
   }, [position, isMoving, controlMode]);
 
+  // Track activity time and log activities
+  useEffect(() => {
+    if (currentAction === "harvest" || currentAction === "spray") {
+      if (!activityStartTime) {
+        setActivityStartTime(Date.now());
+      }
+
+      const timer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - (activityStartTime || Date.now())) / 1000);
+        setCurrentActivityDuration(elapsed);
+
+        // Log activity with coordinates every 5 seconds
+        if (elapsed % 5 === 0 && (isMoving || controlMode === "manual")) {
+          setActivityLog((prev) => [
+            ...prev,
+            {
+              activity: currentAction,
+              coordinates: [position.lat, position.lng],
+              timestamp: new Date().toISOString(),
+              duration: elapsed,
+            },
+          ]);
+        }
+      }, 1000);
+
+      return () => clearInterval(timer);
+    } else {
+      // Save duration when stopping activity
+      if (activityStartTime) {
+        const duration = Math.floor((Date.now() - activityStartTime) / 1000);
+        if (currentAction === "harvest") {
+          setTotalHarvestTime((prev) => prev + duration);
+        } else if (currentAction === "spray") {
+          setTotalSprayTime((prev) => prev + duration);
+        }
+        setActivityStartTime(null);
+        setCurrentActivityDuration(0);
+      }
+    }
+  }, [currentAction, activityStartTime, position, isMoving, controlMode]);
+
   const handleModelSelect = (model: TractorModel) => {
     setSelectedModel(model);
     setCustomTurnRadius(model.turnRadius);
@@ -136,7 +189,32 @@ const Index = () => {
   const clearPath = () => {
     setPath([[position.lat, position.lng]]);
     setCoveredArea([]);
-    toast.info("Path cleared");
+    setActivityLog([]);
+    setTotalHarvestTime(0);
+    setTotalSprayTime(0);
+    setCurrentActivityDuration(0);
+    setActivityStartTime(null);
+    toast.info("Path and activity data cleared");
+  };
+
+  const exportActivityData = () => {
+    const data = {
+      summary: {
+        totalHarvestTime: `${Math.floor(totalHarvestTime / 60)}m ${totalHarvestTime % 60}s`,
+        totalSprayTime: `${Math.floor(totalSprayTime / 60)}m ${totalSprayTime % 60}s`,
+        totalActivities: activityLog.length,
+      },
+      activities: activityLog,
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tractor-activity-${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Activity data exported!");
   };
 
   return (
@@ -199,6 +277,10 @@ const Index = () => {
             }}
             onTurn={handleTurn}
             onClearPath={clearPath}
+            currentActivityDuration={currentActivityDuration}
+            totalHarvestTime={totalHarvestTime}
+            totalSprayTime={totalSprayTime}
+            onExportData={exportActivityData}
           />
         </div>
 
@@ -211,6 +293,7 @@ const Index = () => {
             currentAction={currentAction}
             path={path}
             coveredArea={coveredArea}
+            activityLog={activityLog}
           />
         </div>
 
