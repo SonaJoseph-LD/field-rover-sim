@@ -450,17 +450,17 @@ export default function Map() {
     }
   }, [currentAction, isMoving, activityStartTime, position]);
 
-  // Keyboard controls (same as 2D version)
+  // Keyboard controls
   useEffect(() => {
     if (controlMode !== "manual") return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      e.preventDefault();
       const speedInMetersPerSecond = (customMaxSpeed * 1000) / 3600;
       const metersPerStep = speedInMetersPerSecond * 0.05;
 
       switch (e.key) {
         case "ArrowUp":
-          e.preventDefault();
           setPosition((prev) => {
             const latChange = (metersPerStep / 111320) * Math.cos((prev.heading * Math.PI) / 180);
             const lngChange = (metersPerStep / (111320 * Math.cos((prev.lat * Math.PI) / 180))) * Math.sin((prev.heading * Math.PI) / 180);
@@ -474,7 +474,6 @@ export default function Map() {
           });
           break;
         case "ArrowDown":
-          e.preventDefault();
           setPosition((prev) => {
             const latChange = (metersPerStep / 111320) * Math.cos((prev.heading * Math.PI) / 180);
             const lngChange = (metersPerStep / (111320 * Math.cos((prev.lat * Math.PI) / 180))) * Math.sin((prev.heading * Math.PI) / 180);
@@ -488,11 +487,9 @@ export default function Map() {
           });
           break;
         case "ArrowLeft":
-          e.preventDefault();
           setPosition((prev) => ({ ...prev, heading: (prev.heading - 5 + 360) % 360 }));
           break;
         case "ArrowRight":
-          e.preventDefault();
           setPosition((prev) => ({ ...prev, heading: (prev.heading + 5) % 360 }));
           break;
       }
@@ -501,6 +498,17 @@ export default function Map() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [controlMode, customMaxSpeed, currentAction]);
+
+  // Handle control mode change
+  useEffect(() => {
+    if (controlMode === "manual") {
+      setIsMoving(false);
+      toast.info("Manual mode: Use arrow keys to control the tractor");
+    } else {
+      setIsMoving(true);
+      toast.info("Automatic mode: Tractor will move automatically");
+    }
+  }, [controlMode]);
 
   const handleTurn = (direction: "left" | "right") => {
     const turnAngle = (180 / Math.PI) * Math.atan(selectedModel.size.length / customTurnRadius);
