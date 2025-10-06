@@ -5,9 +5,13 @@ import { ActionPanel } from "@/components/ActionPanel";
 import { CoordinateInput } from "@/components/CoordinateInput";
 import { Telemetry } from "@/components/Telemetry";
 import { TractorModel, TractorPosition, TRACTOR_MODELS, DEFAULT_POSITION } from "@/types/tractor";
+import { Button } from "@/components/ui/button";
+import { Box } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedModel, setSelectedModel] = useState<TractorModel>(TRACTOR_MODELS[0]);
   const [position, setPosition] = useState<TractorPosition>(DEFAULT_POSITION);
   const [customTurnRadius, setCustomTurnRadius] = useState(selectedModel.turnRadius);
@@ -233,6 +237,10 @@ const Index = () => {
               <p className="text-muted-foreground">Advanced Field Operations Control Center</p>
             </div>
           </div>
+          <Button onClick={() => navigate("/map")} className="gap-2">
+            <Box className="w-4 h-4" />
+            View 3D Simulation
+          </Button>
         </div>
       </header>
 
