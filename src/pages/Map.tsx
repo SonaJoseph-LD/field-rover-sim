@@ -21,12 +21,16 @@ export default function Map() {
   const sprayParticlesRef = useRef<THREE.Points | null>(null);
   const harvestParticlesRef = useRef<THREE.Points | null>(null);
 
-  const [position, setPosition] = useState<TractorPosition>(DEFAULT_POSITION);
+  const [position, setPosition] = useState<TractorPosition>({
+    lat: 40.7128,
+    lng: -74.006,
+    heading: 90, // Moving east along the crop row
+  });
   const [selectedModel, setSelectedModel] = useState(TRACTOR_MODELS[0]);
   const [customTurnRadius, setCustomTurnRadius] = useState(selectedModel.turnRadius);
   const [customMaxSpeed, setCustomMaxSpeed] = useState(selectedModel.maxSpeed);
   const [currentAction, setCurrentAction] = useState("idle");
-  const [isMoving, setIsMoving] = useState(false);
+  const [isMoving, setIsMoving] = useState(true);
   const [speed, setSpeed] = useState(0);
   const [fuelLevel, setFuelLevel] = useState(100);
   const [efficiency, setEfficiency] = useState(85);
