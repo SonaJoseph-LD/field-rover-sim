@@ -11,8 +11,6 @@ interface TractorConfigProps {
   onModelSelect: (model: TractorModel) => void;
   customTurnRadius: number;
   onTurnRadiusChange: (radius: number) => void;
-  customMaxSpeed: number;
-  onMaxSpeedChange: (speed: number) => void;
 }
 
 export const TractorConfig = ({
@@ -20,8 +18,6 @@ export const TractorConfig = ({
   onModelSelect,
   customTurnRadius,
   onTurnRadiusChange,
-  customMaxSpeed,
-  onMaxSpeedChange,
 }: TractorConfigProps) => {
   return (
     <Card className="w-full">
@@ -80,24 +76,6 @@ export const TractorConfig = ({
               <div className="font-medium">{selectedModel.turnRadius}m</div>
             </div>
           </div>
-        </div>
-
-        {/* Custom Max Speed */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <Label className="text-sm font-medium">Custom Max Speed</Label>
-            <span className="text-sm font-semibold text-primary">
-              {customMaxSpeed.toFixed(1)} km/h
-            </span>
-          </div>
-          <Slider
-            value={[customMaxSpeed]}
-            onValueChange={(value) => onMaxSpeedChange(value[0])}
-            min={5}
-            max={40}
-            step={0.5}
-            className="w-full"
-          />
         </div>
 
         {/* Custom Turn Radius */}
