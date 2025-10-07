@@ -299,7 +299,8 @@ export default function Map() {
     
     tractorGroupRef.current.position.x = x;
     tractorGroupRef.current.position.z = z;
-    tractorGroupRef.current.rotation.y = -position.heading * (Math.PI / 180);
+    // Correct rotation: heading 90° (East) should face +X direction (-90° in Three.js)
+    tractorGroupRef.current.rotation.y = (Math.PI / 2) - (position.heading * Math.PI / 180);
   }, [position]);
 
   // Update path visualization
@@ -598,6 +599,8 @@ export default function Map() {
               }}
               customTurnRadius={customTurnRadius}
               onTurnRadiusChange={setCustomTurnRadius}
+              customMaxSpeed={customMaxSpeed}
+              onMaxSpeedChange={setCustomMaxSpeed}
             />
 
             <CoordinateInput currentPosition={position} onPositionSet={setPosition} />

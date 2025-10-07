@@ -15,6 +15,7 @@ const Index = () => {
   const [selectedModel, setSelectedModel] = useState<TractorModel>(TRACTOR_MODELS[0]);
   const [position, setPosition] = useState<TractorPosition>(DEFAULT_POSITION);
   const [customTurnRadius, setCustomTurnRadius] = useState(selectedModel.turnRadius);
+  const [customMaxSpeed, setCustomMaxSpeed] = useState(selectedModel.maxSpeed);
   const [currentAction, setCurrentAction] = useState("idle");
   const [isMoving, setIsMoving] = useState(false);
   const [speed, setSpeed] = useState(0);
@@ -177,6 +178,7 @@ const Index = () => {
   const handleModelSelect = (model: TractorModel) => {
     setSelectedModel(model);
     setCustomTurnRadius(model.turnRadius);
+    setCustomMaxSpeed(model.maxSpeed);
   };
 
   const handleTurn = (direction: "left" | "right") => {
@@ -253,6 +255,8 @@ const Index = () => {
             onModelSelect={handleModelSelect}
             customTurnRadius={customTurnRadius}
             onTurnRadiusChange={setCustomTurnRadius}
+            customMaxSpeed={customMaxSpeed}
+            onMaxSpeedChange={setCustomMaxSpeed}
           />
           
           <ActionPanel
